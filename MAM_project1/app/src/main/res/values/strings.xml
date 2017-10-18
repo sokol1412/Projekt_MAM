@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MAM_project1</string>
+    <string-array name="tracking_objects">
+        <item>Circulant</item>
+        <item>Mean-Shift</item>
+    </string-array>
+
+    <string name="title_activity_object_tracker">ObjectTrackerActivity</string>
+</resources>

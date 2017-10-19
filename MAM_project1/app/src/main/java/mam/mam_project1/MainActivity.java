@@ -1,66 +1,4 @@
-/*
-package mam.mam_project1;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.WindowManager;
-import android.widget.Toast;
-
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
-
-    //const values
-    private static final float SHAKE_THRESHOLD = 10.0f;
-    private static final int TIME_BETWEEN_SHAKES = 1000;
-
-    SensorManager sensorManager;
-    volatile long lastShakeDetectionTime;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initShakeDetection();
-    }
-
-    private void initShakeDetection(){
-        lastShakeDetectionTime = System.currentTimeMillis();
-
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        Sensor accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (accSensor!=null)
-            sensorManager.registerListener(this,accSensor, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            long currentTime = System.currentTimeMillis();
-            if ((currentTime - lastShakeDetectionTime) > TIME_BETWEEN_SHAKES) {
-
-                float x = event.values[0];
-                float y = event.values[1];
-                float z = event.values[2];
-
-                // Calculate acceleration
-                if ((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2)) - SensorManager.GRAVITY_EARTH) > SHAKE_THRESHOLD) {
-                    lastShakeDetectionTime = currentTime;
-                    Toast.makeText(getApplicationContext(), "Hi", Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-}
-*/
 
 package mam.mam_project1;
 
@@ -80,14 +18,10 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-
 import java.util.List;
 
 import boofcv.abst.tracker.ConfigComaniciu2003;
-import boofcv.abst.tracker.ConfigTld;
-import boofcv.abst.tracker.MeanShiftLikelihoodType;
 import boofcv.abst.tracker.TrackerObjectQuad;
-import boofcv.alg.tracker.sfot.SfotConfig;
 import boofcv.android.ConvertBitmap;
 import boofcv.android.gui.VideoDisplayActivity;
 import boofcv.android.gui.VideoImageProcessing;
@@ -105,9 +39,9 @@ import georegression.struct.shapes.Quadrilateral_F64;
 public class MainActivity extends VideoDisplayActivity
         implements AdapterView.OnItemSelectedListener, View.OnTouchListener {
 
-    static Camera camera = null;
-
+    Shaker shaker;
     Spinner spinnerView;
+    static Camera camera = null;
     int mode = 0;
 
     // size of the minimum square which the user can select
@@ -120,6 +54,7 @@ public class MainActivity extends VideoDisplayActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        shaker = new Shaker(getApplicationContext());
         LayoutInflater inflater = getLayoutInflater();
 
         LinearLayout controls = (LinearLayout) inflater.inflate(R.layout.activity_main, null);
@@ -242,9 +177,9 @@ public class MainActivity extends VideoDisplayActivity
 
         Quadrilateral_F64 location = new Quadrilateral_F64();
 
-        Paint paintSelected = new Paint();
-        Paint paintLine0 = new Paint();
-        private Paint textPaint = new Paint();
+        Paint objectMarkingPaint = new Paint();
+        Paint trackingPaint = new Paint();
+        //Paint textPaint = new Paint();
 
         protected TrackingProcessing(TrackerObjectQuad tracker, ImageType<T> inputType) {
             super(ImageType.ms(3, ImageUInt8.class));
@@ -257,16 +192,15 @@ public class MainActivity extends VideoDisplayActivity
             mode = 0;
             this.tracker = tracker;
 
-            paintSelected.setColor(Color.argb(0xFF / 2, 0xFF, 0, 0));
+            objectMarkingPaint.setColor(Color.argb(0xFF / 2, 0xFF, 0, 0));
 
-            paintLine0.setColor(Color.BLUE);
-            paintLine0.setStrokeWidth(3f);
-            paintLine0.setStyle(Paint.Style.STROKE);
+            trackingPaint.setColor(Color.BLUE);
+            trackingPaint.setStrokeWidth(3f);
+            trackingPaint.setStyle(Paint.Style.STROKE);
 
-            // Create out paint to use for drawing
-            textPaint.setARGB(255, 200, 0, 0);
-            textPaint.setTextSize(60);
-
+            //Create paint to use for drawing
+            //textPaint.setARGB(255, 200, 0, 0);
+            //textPaint.setTextSize(60);
         }
 
         @Override
@@ -325,13 +259,17 @@ public class MainActivity extends VideoDisplayActivity
                 imageToOutput(click0.x, click0.y, a);
                 imageToOutput(click1.x, click1.y, b);
 
-                canvas.drawRect((int) a.x, (int) a.y, (int) b.x, (int) b.y, paintSelected);
+                canvas.drawRect((int) a.x, (int) a.y, (int) b.x, (int) b.y, objectMarkingPaint);
             } else if (mode >= 2) {
                 if (visible) {
                     Quadrilateral_F64 q = location;
-                    canvas.drawRect((int) q.a.x, (int) q.a.y, (int) q.c.x, (int) q.c.y, paintLine0);
+                    if (shaker.shakeEventOccured) {
+                        trackingPaint.setColor(shaker.randomColor);
+                        shaker.shakeEventOccured = false;
+                    }
+                    canvas.drawRect((int) q.a.x, (int) q.a.y, (int) q.c.x, (int) q.c.y, trackingPaint);
                 } else {
-                    canvas.drawText("?", color.width / 2, color.height / 2, textPaint);
+                    //canvas.drawText("?", color.width / 2, color.height / 2, textPaint);
                 }
             }
         }

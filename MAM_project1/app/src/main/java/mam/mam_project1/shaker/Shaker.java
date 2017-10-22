@@ -1,4 +1,4 @@
-package mam.mam_project1;
+package mam.mam_project1.shaker;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -21,7 +21,7 @@ public class Shaker extends AppCompatActivity implements SensorEventListener {
     volatile long lastShakeDetectionTime;
 
     public int randomColor;
-    public boolean shakeEventOccured;
+    public boolean shakeEventOccurred;
 
     public Shaker(Context applicationContext) {
         randomColor = Color.BLUE;
@@ -48,7 +48,7 @@ public class Shaker extends AppCompatActivity implements SensorEventListener {
                     lastShakeDetectionTime = currentTime;
                     Random rnd = new Random();
                     randomColor = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-                    shakeEventOccured = true;
+                    shakeEventOccurred = true;
 
                 }
             }

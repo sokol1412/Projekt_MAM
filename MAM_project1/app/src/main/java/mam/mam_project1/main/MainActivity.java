@@ -1,26 +1,22 @@
-
-
-package mam.mam_project1;
+package mam.mam_project1.main;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.Camera;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import boofcv.abst.tracker.ConfigComaniciu2003;
 import boofcv.abst.tracker.TrackerObjectQuad;
 import boofcv.android.ConvertBitmap;
 import boofcv.android.gui.VideoDisplayActivity;
@@ -34,52 +30,187 @@ import boofcv.struct.image.MultiSpectral;
 import georegression.struct.point.Point2D_F64;
 import georegression.struct.point.Point2D_I32;
 import georegression.struct.shapes.Quadrilateral_F64;
+import mam.mam_project1.ar_localizer.AugmentedPoint;
+import mam.mam_project1.ar_localizer.CurrentAzimuth;
+import mam.mam_project1.ar_localizer.CurrentLocation;
+import mam.mam_project1.ar_localizer.SensorsChangedListener;
+import mam.mam_project1.shaker.Shaker;
 
 
 public class MainActivity extends VideoDisplayActivity
-        implements AdapterView.OnItemSelectedListener, View.OnTouchListener {
+        implements View.OnTouchListener, SensorsChangedListener {
 
-    Shaker shaker;
-    Spinner spinnerView;
-    static Camera camera = null;
-    int mode = 0;
+    private int mode = 0;
+    private Shaker shaker;
+    private static Camera camera = null;
 
-    // size of the minimum square which the user can select
-    final static int MINIMUM_MOTION = 20;
+    private List<AugmentedPoint> augmentedPoints;
 
-    Point2D_I32 click0 = new Point2D_I32();
-    Point2D_I32 click1 = new Point2D_I32();
+    private static double AZIMUTH_ACCURACY = 5;
+    private double realAzimuth = 0;
+    private double mMyLatitude = 0;
+    private double mMyLongitude = 0;
+    private Toast ARToast = null;
+
+    private CurrentAzimuth currentAzimuth;
+    private CurrentLocation currentLocation;
+
+    // size of the minimum square which user must select in order to track object
+    private final static int MINIMUM_MOTION = 20;
+
+    //constant for defining the time duration between the click that can be considered as double-tap
+    private final static int MAX_DURATION = 200;
+
+    private Point2D_I32 click0 = new Point2D_I32();
+    private Point2D_I32 click1 = new Point2D_I32();
+
+    //clickTime needed for detecting doubletap event
+    private long clickTime;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         shaker = new Shaker(getApplicationContext());
-        LayoutInflater inflater = getLayoutInflater();
-
-        LinearLayout controls = (LinearLayout) inflater.inflate(R.layout.activity_main, null);
-
-        LinearLayout parent = getViewContent();
-        parent.addView(controls);
 
         FrameLayout iv = getViewPreview();
         iv.setOnTouchListener(this);
 
-        spinnerView = (Spinner) controls.findViewById(R.id.spinner_algs);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.tracking_objects, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerView.setAdapter(adapter);
-        spinnerView.setOnItemSelectedListener(this);
+        startObjectTracking();
+        setupListeners();
+        setAugmentedPoints();
+        ARToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
     }
 
     @Override
     protected void onResume() {
+        currentAzimuth.start();
+        currentLocation.start();
         super.onResume();
-        startObjectTracking(spinnerView.getSelectedItemPosition());
+        startObjectTracking();
         //setShowFPS(true);
     }
 
+    @Override
+    protected void onStop() {
+        currentAzimuth.stop();
+        currentLocation.stop();
+        super.onStop();
+    }
+
+    private void setupListeners() {
+        currentLocation = new CurrentLocation(this);
+        currentLocation.buildGoogleApiClient(this);
+        currentLocation.start();
+
+        currentAzimuth = new CurrentAzimuth(this, this);
+        currentAzimuth.start();
+    }
+
+
+    private void setAugmentedPoints() {
+        augmentedPoints = new ArrayList<AugmentedPoint>();
+        augmentedPoints.add(new AugmentedPoint(
+                "London",
+                51.509865,
+                -0.118092));
+        augmentedPoints.add(new AugmentedPoint(
+                "Warsaw",
+                52.237049,
+                21.017532));
+        augmentedPoints.add(new AugmentedPoint(
+                "Helsinki",
+                60.192059,
+                24.945831));
+        augmentedPoints.add(new AugmentedPoint(
+                "Madrid",
+                40.416775,
+                -3.703790));
+        augmentedPoints.add(new AugmentedPoint(
+                "Ottawa",
+                45.425533,
+                -75.692482));
+    }
+
+    public double calculateTeoreticalAzimuth(double pointLat, double pointLon) {
+        //this function returns theorethical azimuth calculated from device current location to some POI location
+        double dX = pointLat - mMyLatitude;
+        double dY = pointLon - mMyLongitude;
+
+        double phiAngle;
+        double tanPhi;
+
+        tanPhi = Math.abs(dY / dX);
+        phiAngle = Math.atan(tanPhi);
+        phiAngle = Math.toDegrees(phiAngle);
+
+        if (dX > 0 && dY > 0) { // I quater
+            return phiAngle;
+        } else if (dX < 0 && dY > 0) { // II
+            return 180 - phiAngle;
+        } else if (dX < 0 && dY < 0) { // III
+            return 180 + phiAngle;
+        } else if (dX > 0 && dY < 0) { // IV
+            return 360 - phiAngle;
+        }
+
+        return phiAngle;
+    }
+
+    private List<Double> calculateAzimuthAccuracy(double azimuth) {
+        double minAngle = azimuth - AZIMUTH_ACCURACY;
+        double maxAngle = azimuth + AZIMUTH_ACCURACY;
+        List<Double> minMax = new ArrayList<Double>();
+
+        if (minAngle < 0)
+            minAngle += 360;
+
+        if (maxAngle >= 360)
+            maxAngle -= 360;
+
+        minMax.clear();
+        minMax.add(minAngle);
+        minMax.add(maxAngle);
+
+        return minMax;
+    }
+
+    private boolean isBetween(double minAngle, double maxAngle, double azimuth) {
+        if (minAngle > maxAngle) {
+            if (isBetween(0, maxAngle, azimuth) && isBetween(minAngle, 360, azimuth))
+                return true;
+        } else {
+            if (azimuth > minAngle && azimuth < maxAngle)
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mMyLatitude = location.getLatitude();
+        mMyLongitude = location.getLongitude();
+    }
+
+    @Override
+    public void onAzimuthChanged(float azimuthChangedFrom, float azimuthChangedTo) {
+        if (mMyLatitude == 0 || mMyLongitude == 0)
+            return;
+        realAzimuth = azimuthChangedTo;
+
+        for (AugmentedPoint a : augmentedPoints) {
+            double pointAzimuth = calculateTeoreticalAzimuth(a.getPointLat(), a.getPointLon());
+            double minAngle = calculateAzimuthAccuracy(pointAzimuth).get(0);
+            double maxAngle = calculateAzimuthAccuracy(pointAzimuth).get(1);
+            float[] calculatedDistance = new float[3];
+            Location.distanceBetween(mMyLatitude, mMyLongitude, a.getPointLat(), a.getPointLon(), calculatedDistance);
+
+            if (isBetween(minAngle, maxAngle, realAzimuth)) {
+                ARToast.setText("City: " + a.getPointName() + "\nDistance: " + Math.round(calculatedDistance[0] * 0.001) + " km");
+                ARToast.show();
+            }
+        }
+    }
 
     private static int getClosestSize(List<Camera.Size> sizes, int width, int height) {
         int best = -1;
@@ -97,10 +228,8 @@ public class MainActivity extends VideoDisplayActivity
                 bestScore = score;
             }
         }
-
         return best;
     }
-
 
     @Override
     protected Camera openConfigureCamera(Camera.CameraInfo cameraInfo) {
@@ -114,35 +243,14 @@ public class MainActivity extends VideoDisplayActivity
         return camera;
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
-        startObjectTracking(pos);
-    }
+    private void startObjectTracking() {
+        ImageType imageType = ImageType.single(ImageUInt8.class);
+        //circular tracker - good and robust, but unable to recover track when focus is lost
+        TrackerObjectQuad tracker = FactoryTrackerObjectQuad.circulant(null, ImageUInt8.class);
 
-    private void startObjectTracking(int pos) {
-        TrackerObjectQuad tracker = null;
-        ImageType imageType = null;
-
-        switch (pos) {
-            case 0:
-                imageType = ImageType.single(ImageUInt8.class);
-                //simple and robust tracker, but can't recover tracks
-                tracker = FactoryTrackerObjectQuad.circulant(null, ImageUInt8.class);
-                break;
-            case 1:
-                imageType = ImageType.ms(3, ImageUInt8.class);
-                //this tracker matches the histogram of a local neighborhood
-                tracker = FactoryTrackerObjectQuad.meanShiftComaniciu2003(new ConfigComaniciu2003(false), imageType);
-                break;
-            default:
-                throw new RuntimeException("Unknown tracker: " + pos);
-        }
         setProcessing(new TrackingProcessing(tracker, imageType));
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> adapterView) {
-    }
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -159,12 +267,17 @@ public class MainActivity extends VideoDisplayActivity
                 click1.set((int) motionEvent.getX(), (int) motionEvent.getY());
                 mode = 2;
             }
+        } else if (mode == 3) {
+            if (MotionEvent.ACTION_UP == motionEvent.getActionMasked()) {
+                clickTime = System.currentTimeMillis();
+            } else if (MotionEvent.ACTION_DOWN == motionEvent.getActionMasked()) {
+                if (System.currentTimeMillis() - clickTime <= MAX_DURATION) {
+                    mode = 0;
+                }
+            }
         }
-        return true;
-    }
 
-    public void resetPressed(View view) {
-        mode = 0;
+        return true;
     }
 
     protected class TrackingProcessing<T extends ImageBase> extends VideoImageProcessing<MultiSpectral<ImageUInt8>> {
@@ -198,9 +311,6 @@ public class MainActivity extends VideoDisplayActivity
             trackingPaint.setStrokeWidth(3f);
             trackingPaint.setStyle(Paint.Style.STROKE);
 
-            //Create paint to use for drawing
-            //textPaint.setARGB(255, 200, 0, 0);
-            //textPaint.setTextSize(60);
         }
 
         @Override
@@ -234,7 +344,6 @@ public class MainActivity extends VideoDisplayActivity
                     visible = true;
                     mode = 3;
                 } else {
-                    // the user screw up. Let them know what they did wrong
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -263,13 +372,11 @@ public class MainActivity extends VideoDisplayActivity
             } else if (mode >= 2) {
                 if (visible) {
                     Quadrilateral_F64 q = location;
-                    if (shaker.shakeEventOccured) {
+                    if (shaker.shakeEventOccurred) {
                         trackingPaint.setColor(shaker.randomColor);
-                        shaker.shakeEventOccured = false;
+                        shaker.shakeEventOccurred = false;
                     }
                     canvas.drawRect((int) q.a.x, (int) q.a.y, (int) q.c.x, (int) q.c.y, trackingPaint);
-                } else {
-                    //canvas.drawText("?", color.width / 2, color.height / 2, textPaint);
                 }
             }
         }

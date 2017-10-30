@@ -1,5 +1,6 @@
-package mam.mam_project1.main;
+package mam.mam_project1.standard_view;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -30,14 +31,16 @@ import boofcv.struct.image.MultiSpectral;
 import georegression.struct.point.Point2D_F64;
 import georegression.struct.point.Point2D_I32;
 import georegression.struct.shapes.Quadrilateral_F64;
+import mam.mam_project1.R;
 import mam.mam_project1.ar_localizer.AugmentedPoint;
 import mam.mam_project1.ar_localizer.CurrentAzimuth;
 import mam.mam_project1.ar_localizer.CurrentLocation;
 import mam.mam_project1.ar_localizer.SensorsChangedListener;
 import mam.mam_project1.shaker.Shaker;
+import mam.mam_project1.vr_view.VRViewActivity;
 
 
-public class MainActivity extends VideoDisplayActivity
+public class StandardViewActivity extends VideoDisplayActivity
         implements View.OnTouchListener, SensorsChangedListener {
 
     private int mode = 0;
@@ -73,6 +76,13 @@ public class MainActivity extends VideoDisplayActivity
 
         shaker = new Shaker(getApplicationContext());
 
+        LayoutInflater inflater = getLayoutInflater();
+        LinearLayout controls = (LinearLayout)inflater.inflate(R.layout.standard_view,null);
+        controls.setBackgroundColor(Color.BLACK);
+
+        LinearLayout parent = getViewContent();
+        parent.addView(controls);
+
         FrameLayout iv = getViewPreview();
         iv.setOnTouchListener(this);
 
@@ -80,6 +90,11 @@ public class MainActivity extends VideoDisplayActivity
         setupListeners();
         setAugmentedPoints();
         ARToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+    }
+
+    public void changeActivity(View view ) {
+        Intent Intent = new Intent(this, VRViewActivity.class);
+        startActivity(Intent);
     }
 
     @Override
@@ -347,7 +362,7 @@ public class MainActivity extends VideoDisplayActivity
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(MainActivity.this, "Drag a larger region", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(StandardViewActivity.this, "Drag a larger region", Toast.LENGTH_SHORT).show();
                         }
                     });
                     mode = 0;

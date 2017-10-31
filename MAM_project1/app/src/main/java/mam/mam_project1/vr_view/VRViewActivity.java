@@ -55,6 +55,7 @@ public class VRViewActivity extends GvrActivity implements GvrRenderer.GvrRender
 
         gvrRenderer = new GvrRenderer(cameraView, this);
         cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+
     }
 
     public void changeActivity(View view ) {

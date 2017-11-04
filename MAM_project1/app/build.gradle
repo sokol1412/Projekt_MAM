@@ -3,6 +3,10 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDir "vuforia-sdk/build/lib"
+    }
     defaultConfig {
         applicationId "mam.mam_project1"
         minSdkVersion 22
@@ -30,4 +34,5 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.google.android.gms:play-services:8.1.0'
     ['recognition','android'].each { String a -> compile group: 'org.boofcv', name: a, version: '0.17' }
+    compile files("vuforia-sdk/Vuforia.jar")
 }

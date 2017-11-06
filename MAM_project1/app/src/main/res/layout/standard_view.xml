@@ -6,11 +6,26 @@
     android:background="@null">
 
     <Button
-        android:id="@+id/changeToVR"
+        android:id="@+id/changeToRecognitionView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="left"
-        android:onClick="changeActivity"
+        android:onClick="changeToRecognitionViewActivity"
+        android:text="Switch to Recognition View"
+        android:visibility="visible" />
+
+    <!--we need this view to separate left and right button-->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/changeToVR"
+        android:layout_width="243dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:onClick="changeToVRActivity"
         android:text="Switch to VR View"
         android:visibility="visible" />
 

@@ -28,7 +28,8 @@
             android:label="@string/app_name"
             android:screenOrientation="landscape" >
             <intent-filter>
-                <action android:name="StandardViewActivity" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".vr_view.VRViewActivity"
@@ -37,11 +38,10 @@
                 <action android:name="VRActivity"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ar_recognition.ImageTargets"
+        <activity android:name=".ar_recognition.RecognitionViewActivity"
             android:screenOrientation="landscape">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="RecognitionView"/>
             </intent-filter>
         </activity>
     </application>

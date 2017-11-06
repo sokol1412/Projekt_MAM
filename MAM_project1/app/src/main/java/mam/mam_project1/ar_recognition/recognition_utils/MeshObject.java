@@ -52,8 +52,8 @@ public abstract class MeshObject
         return bb;
         
     }
-    
-    
+
+
     protected Buffer fillBuffer(float[] array)
     {
         // Each float takes 4 bytes
@@ -62,11 +62,11 @@ public abstract class MeshObject
         for (float d : array)
             bb.putFloat(d);
         bb.rewind();
-        
+
         return bb;
-        
+
     }
-    
+
     
     protected Buffer fillBuffer(short[] array)
     {
@@ -83,11 +83,11 @@ public abstract class MeshObject
     
     
     public abstract Buffer getBuffer(BUFFER_TYPE bufferType);
-    
-    
+
+
     public abstract int getNumObjectVertex();
-    
-    
+
+
     public abstract int getNumObjectIndex();
     
 }

@@ -9,15 +9,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="left"
-        android:onClick="changeActivity"
+        android:onClick="changeToStandardActivity"
         android:text="Switch to Standard View"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
+
+    <Button
+        android:id="@+id/changeToRecognition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:onClick="changeToRecognitionActivity"
+        android:text="Switch to Recognition View"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
 
     <com.google.vr.sdk.base.GvrView
         android:id="@+id/camera_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+
 
 
 </RelativeLayout>

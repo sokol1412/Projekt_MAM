@@ -36,8 +36,11 @@ import mam.mam_project1.ar_localizer.AugmentedPoint;
 import mam.mam_project1.ar_localizer.CurrentAzimuth;
 import mam.mam_project1.ar_localizer.CurrentLocation;
 import mam.mam_project1.ar_localizer.SensorsChangedListener;
+import mam.mam_project1.ar_recognition.RecognitionViewActivity;
 import mam.mam_project1.shaker.Shaker;
 import mam.mam_project1.vr_view.VRViewActivity;
+
+import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 
 
 public class StandardViewActivity extends VideoDisplayActivity
@@ -77,7 +80,7 @@ public class StandardViewActivity extends VideoDisplayActivity
         shaker = new Shaker(getApplicationContext());
 
         LayoutInflater inflater = getLayoutInflater();
-        LinearLayout controls = (LinearLayout)inflater.inflate(R.layout.standard_view,null);
+        LinearLayout controls = (LinearLayout) inflater.inflate(R.layout.standard_view, null);
         controls.setBackgroundColor(Color.BLACK);
 
         LinearLayout parent = getViewContent();
@@ -92,9 +95,15 @@ public class StandardViewActivity extends VideoDisplayActivity
         ARToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
     }
 
-    public void changeActivity(View view ) {
-        Intent Intent = new Intent(this, VRViewActivity.class);
-        startActivity(Intent);
+    public void changeToVRActivity(View view) {
+        Intent switcher = new Intent(this, VRViewActivity.class);
+        startActivity(switcher);
+    }
+
+    public void changeToRecognitionViewActivity(View view) {
+        Intent switcher = new Intent(this, RecognitionViewActivity.class);
+        switcher.setFlags(FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(switcher);
     }
 
     @Override

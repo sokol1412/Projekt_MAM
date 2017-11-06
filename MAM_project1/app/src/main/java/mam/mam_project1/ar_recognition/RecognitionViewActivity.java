@@ -4,12 +4,10 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.Toast;
 
 import com.vuforia.CameraDevice;
 import com.vuforia.DataSet;
@@ -27,7 +25,7 @@ import mam.mam_project1.ar_recognition.recognition_utils.SampleApplicationGLView
 import mam.mam_project1.ar_recognition.recognition_utils.Texture;
 
 
-public class ImageTargets extends Activity implements SampleApplicationControl {
+public class RecognitionViewActivity extends Activity implements SampleApplicationControl {
     private static final String LOGTAG = "ImageTargets";
 
     SampleApplicationSession vuforiaAppSession;
@@ -38,15 +36,13 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
     private SampleApplicationGLView mGlView;
 
     // Our renderer:
-    private ImageTargetRenderer mRenderer;
+    private RecognitionViewRenderer mRenderer;
 
     // The textures we will use for rendering:
     private Vector<Texture> mTextures;
 
-    private boolean mSwitchDatasetAsap = false;
-    private boolean mContAutofocus = true;
-    private boolean mExtendedTracking = false;
-
+    public Toast recognitionToast = null;
+    public String toastText = "";
 
     // Called when the activity first starts or the user navigates back to an activity.
     @Override
@@ -62,44 +58,7 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
         // Load any sample specific textures:
         mTextures = new Vector<Texture>();
         loadTextures();
-    }
-
-    // Process Single Tap event to trigger autofocus
-    private class GestureListener extends
-            GestureDetector.SimpleOnGestureListener {
-        // Used to set autofocus one second after a manual focus is triggered
-        private final Handler autofocusHandler = new Handler();
-
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
-        }
-
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            boolean result = CameraDevice.getInstance().setFocusMode(
-                    CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
-            if (!result)
-                Log.e("SingleTapUp", "Unable to trigger focus");
-
-            // Generates a Handler to trigger continuous auto-focus
-            // after 1 second
-            autofocusHandler.postDelayed(new Runnable() {
-                public void run() {
-                    if (mContAutofocus) {
-                        final boolean autofocusResult = CameraDevice.getInstance().setFocusMode(
-                                CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
-
-                        if (!autofocusResult)
-                            Log.e("SingleTapUp", "Unable to re-enable continuous auto-focus");
-                    }
-                }
-            }, 1000L);
-
-            return true;
-        }
+        recognitionToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
     }
 
 
@@ -187,7 +146,7 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
         mGlView = new SampleApplicationGLView(this);
         mGlView.init(translucent, depthSize, stencilSize);
 
-        mRenderer = new ImageTargetRenderer(this, vuforiaAppSession);
+        mRenderer = new RecognitionViewRenderer(this, vuforiaAppSession);
         mRenderer.setTextures(mTextures);
         mGlView.setRenderer(mRenderer);
     }
@@ -219,11 +178,7 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
         int numTrackables = mCurrentDataset.getNumTrackables();
         for (int count = 0; count < numTrackables; count++) {
             Trackable trackable = mCurrentDataset.getTrackable(count);
-            if (isExtendedTrackingActive()) {
-                trackable.startExtendedTracking();
-            }
-
-            String name = "Current Dataset : " + trackable.getName();
+            String name = trackable.getName();
             trackable.setUserData(name);
             Log.d(LOGTAG, "UserData:Set the following user data "
                     + (String) trackable.getUserData());
@@ -269,18 +224,6 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
     @Override
     public void onVuforiaStarted() {
         mRenderer.updateConfiguration();
-
-        if (mContAutofocus) {
-            // Set camera focus mode
-            if (!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO)) {
-                // If continuous autofocus mode fails, attempt to set to a different mode
-                if (!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO)) {
-                    CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_NORMAL);
-                }
-
-
-            }
-        }
     }
 
     @Override
@@ -291,35 +234,17 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
 
             mRenderer.setActive(true);
 
-            // Now add the GL surface view. It is important
-            // that the OpenGL ES surface view gets added
-            // BEFORE the camera is started and video
-            // background is configured.
             addContentView(mGlView, new LayoutParams(LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT));
 
             vuforiaAppSession.startAR(CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT);
-
+            CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO);
         }
     }
 
 
     @Override
     public void onVuforiaUpdate(State state) {
-        if (mSwitchDatasetAsap) {
-            mSwitchDatasetAsap = false;
-            TrackerManager tm = TrackerManager.getInstance();
-            ObjectTracker ot = (ObjectTracker) tm.getTracker(ObjectTracker
-                    .getClassType());
-            if (ot == null || mCurrentDataset == null
-                    || ot.getActiveDataSet(0) == null) {
-                Log.d(LOGTAG, "Failed to swap datasets");
-                return;
-            }
-
-            doUnloadTrackersData();
-            doLoadTrackersData();
-        }
     }
 
 
@@ -384,7 +309,4 @@ public class ImageTargets extends Activity implements SampleApplicationControl {
         return result;
     }
 
-    boolean isExtendedTrackingActive() {
-        return mExtendedTracking;
-    }
 }

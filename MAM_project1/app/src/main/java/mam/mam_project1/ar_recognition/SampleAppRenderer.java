@@ -221,7 +221,6 @@ public class SampleAppRenderer {
         videoBackgroundTex.setTextureUnit(vbVideoTextureUnit);
         if (!mRenderer.updateVideoBackgroundTexture(videoBackgroundTex))
         {
-            Log.e(LOGTAG, "Unable to update video background texture");
             return;
         }
 

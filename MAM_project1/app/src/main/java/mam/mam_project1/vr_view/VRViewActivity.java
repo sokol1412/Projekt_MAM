@@ -24,7 +24,10 @@ import com.google.vr.sdk.base.GvrView;
 import java.util.Arrays;
 
 import mam.mam_project1.R;
+import mam.mam_project1.ar_recognition.RecognitionViewActivity;
 import mam.mam_project1.standard_view.StandardViewActivity;
+
+import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 
 
 /**
@@ -58,9 +61,16 @@ public class VRViewActivity extends GvrActivity implements GvrRenderer.GvrRender
 
     }
 
-    public void changeActivity(View view ) {
-        Intent Intent = new Intent(this, StandardViewActivity.class);
-        startActivity(Intent);
+    public void changeToStandardActivity(View view) {
+        Intent switcher = new Intent(this, StandardViewActivity.class);
+        switcher.setFlags(FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(switcher);
+    }
+
+    public void changeToRecognitionActivity(View view) {
+        Intent switcher = new Intent(this, RecognitionViewActivity.class);
+        switcher.setFlags(FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(switcher);
     }
 
 
@@ -100,8 +110,7 @@ public class VRViewActivity extends GvrActivity implements GvrRenderer.GvrRender
         }
     };
 
-    private void openCamera()
-    {
+    private void openCamera() {
         try {
             String cameraId = cameraManager.getCameraIdList()[0];
             //CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -115,8 +124,7 @@ public class VRViewActivity extends GvrActivity implements GvrRenderer.GvrRender
         }
     }
 
-    protected void startPreview()
-    {
+    protected void startPreview() {
         if (cameraDevice == null) {
             Log.e(TAG, "preview failed");
             return;

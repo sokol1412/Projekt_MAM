@@ -24,10 +24,7 @@ import java.util.Vector;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import mam.mam_project1.ar_recognition.recognition_utils.CubeShaders;
 import mam.mam_project1.ar_recognition.recognition_utils.SampleUtils;
-import mam.mam_project1.ar_recognition.recognition_utils.Teapot;
-import mam.mam_project1.ar_recognition.recognition_utils.Texture;
 import mam.mam_project1.standard_view.StandardViewActivity;
 
 import com.vuforia.CameraDevice;
@@ -43,16 +40,11 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
     private RecognitionViewActivity mActivity;
     private SampleAppRenderer mSampleAppRenderer;
 
-    private Vector<Texture> mTextures;
-
     private int shaderProgramID;
     private int vertexHandle;
     private int textureCoordHandle;
     private int mvpMatrixHandle;
     private int texSampler2DHandle;
-
-    private Teapot mTeapot;
-
 
     private boolean mIsActive = false;
     private boolean mModelIsLoaded = false;
@@ -120,22 +112,6 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f
                 : 1.0f);
 
-        for (Texture t : mTextures) {
-            GLES20.glGenTextures(1, t.mTextureID, 0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-                    t.mWidth, t.mHeight, 0, GLES20.GL_RGBA,
-                    GLES20.GL_UNSIGNED_BYTE, t.mData);
-        }
-
-        shaderProgramID = SampleUtils.createProgramFromShaderSrc(
-                CubeShaders.CUBE_MESH_VERTEX_SHADER,
-                CubeShaders.CUBE_MESH_FRAGMENT_SHADER);
-
         vertexHandle = GLES20.glGetAttribLocation(shaderProgramID,
                 "vertexPosition");
         textureCoordHandle = GLES20.glGetAttribLocation(shaderProgramID,
@@ -145,10 +121,6 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
         texSampler2DHandle = GLES20.glGetUniformLocation(shaderProgramID,
                 "texSampler2D");
 
-        if (!mModelIsLoaded) {
-            mTeapot = new Teapot();
-
-        }
     }
 
     public void updateConfiguration() {
@@ -255,11 +227,6 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
             GLES20.glUseProgram(shaderProgramID);
 
 
-            GLES20.glVertexAttribPointer(vertexHandle, 3, GLES20.GL_FLOAT,
-                    false, 0, mTeapot.getVertices());
-            GLES20.glVertexAttribPointer(textureCoordHandle, 2,
-                    GLES20.GL_FLOAT, false, 0, mTeapot.getTexCoords());
-
             GLES20.glEnableVertexAttribArray(vertexHandle);
             GLES20.glEnableVertexAttribArray(textureCoordHandle);
 
@@ -271,25 +238,16 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
             GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false,
                     modelViewProjection, 0);
 
-            // finally draw the teapot
-            GLES20.glDrawElements(GLES20.GL_TRIANGLES,
-                    mTeapot.getNumObjectIndex(), GLES20.GL_UNSIGNED_SHORT,
-                    mTeapot.getIndices());
-
             // disable the enabled arrays
             GLES20.glDisableVertexAttribArray(vertexHandle);
             GLES20.glDisableVertexAttribArray(textureCoordHandle);
 
 
             SampleUtils.checkGLError("Render Frame");
-
         }
 
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
     }
 
-    public void setTextures(Vector<Texture> textures) {
-        mTextures = textures;
-    }
 
 }

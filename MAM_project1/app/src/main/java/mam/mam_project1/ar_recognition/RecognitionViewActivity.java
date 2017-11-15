@@ -19,10 +19,7 @@ import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
 
-import java.util.Vector;
-
 import mam.mam_project1.ar_recognition.recognition_utils.SampleApplicationGLView;
-import mam.mam_project1.ar_recognition.recognition_utils.Texture;
 
 
 public class RecognitionViewActivity extends Activity implements SampleApplicationControl {
@@ -38,8 +35,6 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
     // Our renderer:
     private RecognitionViewRenderer mRenderer;
 
-    // The textures we will use for rendering:
-    private Vector<Texture> mTextures;
 
     public Toast recognitionToast = null;
     public String toastText = "";
@@ -56,25 +51,12 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
                 .initAR(this, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // Load any sample specific textures:
-        mTextures = new Vector<Texture>();
-        loadTextures();
         recognitionToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
     }
 
 
     // We want to load specific textures from the APK, which we will later use
     // for rendering.
-
-    private void loadTextures() {
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBrass.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBlue.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotRed.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("ImageTargets/Buildings.jpeg",
-                getAssets()));
-    }
 
 
     // Called when the activity will start interacting with the user.
@@ -128,9 +110,6 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
             Log.e(LOGTAG, e.getString());
         }
 
-        // Unload texture:
-        mTextures.clear();
-        mTextures = null;
 
         System.gc();
     }
@@ -147,7 +126,6 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
         mGlView.init(translucent, depthSize, stencilSize);
 
         mRenderer = new RecognitionViewRenderer(this, vuforiaAppSession);
-        mRenderer.setTextures(mTextures);
         mGlView.setRenderer(mRenderer);
     }
 

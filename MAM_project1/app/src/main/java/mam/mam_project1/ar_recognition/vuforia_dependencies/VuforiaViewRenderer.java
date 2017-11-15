@@ -1,4 +1,4 @@
-package mam.mam_project1.ar_recognition;
+package mam.mam_project1.ar_recognition.vuforia_dependencies;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -22,6 +22,7 @@ import java.util.TimerTask;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import mam.mam_project1.ar_recognition.RecognitionViewActivity;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaRenderer;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaRendererControl;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaSession;
@@ -32,8 +33,8 @@ import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 
 
 // The renderer class for the RecognitionViewActivity sample.
-public class RecognitionViewRenderer implements GLSurfaceView.Renderer, VuforiaRendererControl {
-    private static final String LOGTAG = "RecognitionViewRenderer";
+public class VuforiaViewRenderer implements GLSurfaceView.Renderer, VuforiaRendererControl {
+    private static final String LOGTAG = "VuforiaViewRenderer";
 
     private VuforiaSession vuforiaAppSession;
     private RecognitionViewActivity mActivity;
@@ -51,7 +52,7 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, VuforiaR
     private static final float OBJECT_SCALE_FLOAT = 0.003f;
     private boolean switchAlreadyActivated = false;
 
-    public RecognitionViewRenderer(RecognitionViewActivity activity, VuforiaSession session) {
+    public VuforiaViewRenderer(RecognitionViewActivity activity, VuforiaSession session) {
         mActivity = activity;
         vuforiaAppSession = session;
         // VuforiaRenderer used to encapsulate the use of RenderingPrimitives setting

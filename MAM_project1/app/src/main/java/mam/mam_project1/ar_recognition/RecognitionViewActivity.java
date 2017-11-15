@@ -23,6 +23,7 @@ import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaControl;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaException;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaGLView;
 import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaSession;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaViewRenderer;
 
 
 public class RecognitionViewActivity extends Activity implements VuforiaControl {
@@ -36,7 +37,7 @@ public class RecognitionViewActivity extends Activity implements VuforiaControl 
     private VuforiaGLView mGlView;
 
     // Our renderer:
-    private RecognitionViewRenderer mRenderer;
+    private VuforiaViewRenderer mRenderer;
 
 
     public Toast recognitionToast = null;
@@ -128,7 +129,7 @@ public class RecognitionViewActivity extends Activity implements VuforiaControl 
         mGlView = new VuforiaGLView(this);
         mGlView.init(translucent, depthSize, stencilSize);
 
-        mRenderer = new RecognitionViewRenderer(this, vuforiaAppSession);
+        mRenderer = new VuforiaViewRenderer(this, vuforiaAppSession);
         mGlView.setRenderer(mRenderer);
     }
 

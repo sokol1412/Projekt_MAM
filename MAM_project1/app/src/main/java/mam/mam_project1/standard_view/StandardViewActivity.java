@@ -112,7 +112,6 @@ public class StandardViewActivity extends VideoDisplayActivity
         currentLocation.start();
         super.onResume();
         startObjectTracking();
-        //setShowFPS(true);
     }
 
     @Override
@@ -316,7 +315,6 @@ public class StandardViewActivity extends VideoDisplayActivity
 
         Paint objectMarkingPaint = new Paint();
         Paint trackingPaint = new Paint();
-        //Paint textPaint = new Paint();
 
         protected TrackingProcessing(TrackerObjectQuad tracker, ImageType<T> inputType) {
             super(ImageType.ms(3, ImageUInt8.class));
@@ -355,12 +353,10 @@ public class StandardViewActivity extends VideoDisplayActivity
                 imageToOutput(click0.x, click0.y, location.a);
                 imageToOutput(click1.x, click1.y, location.c);
 
-                // make sure the user selected a valid region
                 makeInBounds(location.a);
                 makeInBounds(location.c);
 
                 if (movedSignificantly(location.a, location.c)) {
-                    // use the selected region and start the tracker
                     location.b.set(location.c.x, location.a.y);
                     location.d.set(location.a.x, location.c.y);
 

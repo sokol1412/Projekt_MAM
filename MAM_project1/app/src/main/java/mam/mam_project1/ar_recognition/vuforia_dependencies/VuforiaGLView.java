@@ -1,4 +1,4 @@
-package mam.mam_project1.ar_recognition.recognition_utils;
+package mam.mam_project1.ar_recognition.vuforia_dependencies;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -14,13 +14,13 @@ import javax.microedition.khronos.egl.EGLDisplay;
 // Responsible for setting up and configuring the OpenGL surface view.
 // This class does not contain any Vuforia specific code. 
 // You can use your own OpenGL implementation.
-public class SampleApplicationGLView extends GLSurfaceView
+public class VuforiaGLView extends GLSurfaceView
 {
     private static final String LOGTAG = "Vuforia_SampleGLView";
     
     
     // Constructor.
-    public SampleApplicationGLView(Context context)
+    public VuforiaGLView(Context context)
     {
         super(context);
     }

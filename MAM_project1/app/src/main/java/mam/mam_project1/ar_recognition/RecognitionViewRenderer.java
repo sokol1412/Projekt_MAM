@@ -7,7 +7,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.vuforia.Device;
 import com.vuforia.Matrix44F;
@@ -19,26 +18,26 @@ import com.vuforia.Vuforia;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import mam.mam_project1.ar_recognition.recognition_utils.SampleUtils;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaRenderer;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaRendererControl;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaSession;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaUtils;
 import mam.mam_project1.standard_view.StandardViewActivity;
-
-import com.vuforia.CameraDevice;
 
 import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 
 
 // The renderer class for the RecognitionViewActivity sample.
-public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAppRendererControl {
+public class RecognitionViewRenderer implements GLSurfaceView.Renderer, VuforiaRendererControl {
     private static final String LOGTAG = "RecognitionViewRenderer";
 
-    private SampleApplicationSession vuforiaAppSession;
+    private VuforiaSession vuforiaAppSession;
     private RecognitionViewActivity mActivity;
-    private SampleAppRenderer mSampleAppRenderer;
+    private VuforiaRenderer mSampleAppRenderer;
 
     private int shaderProgramID;
     private int vertexHandle;
@@ -52,12 +51,12 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
     private static final float OBJECT_SCALE_FLOAT = 0.003f;
     private boolean switchAlreadyActivated = false;
 
-    public RecognitionViewRenderer(RecognitionViewActivity activity, SampleApplicationSession session) {
+    public RecognitionViewRenderer(RecognitionViewActivity activity, VuforiaSession session) {
         mActivity = activity;
         vuforiaAppSession = session;
-        // SampleAppRenderer used to encapsulate the use of RenderingPrimitives setting
+        // VuforiaRenderer used to encapsulate the use of RenderingPrimitives setting
         // the device mode AR/VR and stereo mode
-        mSampleAppRenderer = new SampleAppRenderer(this, mActivity, Device.MODE.MODE_AR, false, 0.01f, 5f);
+        mSampleAppRenderer = new VuforiaRenderer(this, mActivity, Device.MODE.MODE_AR, false, 0.01f, 5f);
     }
 
 
@@ -67,7 +66,7 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
         if (!mIsActive)
             return;
 
-        // Call our function to render content from SampleAppRenderer class
+        // Call our function to render content from VuforiaRenderer class
         mSampleAppRenderer.render();
     }
 
@@ -128,7 +127,7 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
     }
 
     // The render function called from SampleAppRendering by using RenderingPrimitives views.
-    // The state is owned by SampleAppRenderer which is controlling it's lifecycle.
+    // The state is owned by VuforiaRenderer which is controlling it's lifecycle.
     // State should not be cached outside this method.
     public void renderFrame(State state, float[] projectionMatrix) {
         // Renders video background replacing Renderer.DrawVideoBackground()
@@ -243,7 +242,7 @@ public class RecognitionViewRenderer implements GLSurfaceView.Renderer, SampleAp
             GLES20.glDisableVertexAttribArray(textureCoordHandle);
 
 
-            SampleUtils.checkGLError("Render Frame");
+            VuforiaUtils.checkGLError("Render Frame");
         }
 
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);

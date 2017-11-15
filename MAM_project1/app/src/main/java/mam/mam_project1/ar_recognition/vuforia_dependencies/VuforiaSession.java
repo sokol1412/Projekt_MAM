@@ -1,4 +1,4 @@
-package mam.mam_project1.ar_recognition;
+package mam.mam_project1.ar_recognition.vuforia_dependencies;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -16,16 +16,14 @@ import com.vuforia.Vuforia;
 import com.vuforia.Vuforia.UpdateCallbackInterface;
 
 
-
-
-public class SampleApplicationSession implements UpdateCallbackInterface
+public class VuforiaSession implements UpdateCallbackInterface
 {
     
     private static final String LOGTAG = "SampleAppSession";
     
     // Reference to the current activity
     private Activity mActivity;
-    private SampleApplicationControl mSessionControl;
+    private VuforiaControl mSessionControl;
     
     // Flags
     private boolean mStarted = false;
@@ -51,7 +49,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     private int mCamera = CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT;
     
 
-    public SampleApplicationSession(SampleApplicationControl sessionControl)
+    public VuforiaSession(VuforiaControl sessionControl)
     {
         mSessionControl = sessionControl;
     }
@@ -60,7 +58,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     // Initializes Vuforia and sets up preferences.
     public void initAR(Activity activity, int screenOrientation)
     {
-        SampleApplicationException vuforiaException = null;
+        VuforiaException vuforiaException = null;
         mActivity = activity;
         
         if ((screenOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR)
@@ -70,7 +68,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         // Use an OrientationChangeListener here to capture all orientation changes.  Android
         // will not send an Activity.onConfigurationChanged() callback on a 180 degree rotation,
         // ie: Left Landscape to Right Landscape.  Vuforia needs to react to this change and the
-        // SampleApplicationSession needs to update the Projection Matrix.
+        // VuforiaSession needs to update the Projection Matrix.
         OrientationEventListener orientationEventListener = new OrientationEventListener(mActivity) {
             @Override
             public void onOrientationChanged(int i) {
@@ -106,8 +104,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         if (mInitVuforiaTask != null)
         {
             String logMessage = "Cannot initialize SDK twice";
-            vuforiaException = new SampleApplicationException(
-                SampleApplicationException.VUFORIA_ALREADY_INITIALIZATED,
+            vuforiaException = new VuforiaException(
+                VuforiaException.VUFORIA_ALREADY_INITIALIZATED,
                 logMessage);
             Log.e(LOGTAG, logMessage);
         }
@@ -121,8 +119,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             catch (Exception e)
             {
                 String logMessage = "Initializing Vuforia SDK failed";
-                vuforiaException = new SampleApplicationException(
-                    SampleApplicationException.INITIALIZATION_FAILURE,
+                vuforiaException = new VuforiaException(
+                    VuforiaException.INITIALIZATION_FAILURE,
                     logMessage);
                 Log.e(LOGTAG, logMessage);
             }
@@ -138,15 +136,15 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     
     
     // Starts Vuforia, initialize and starts the camera and start the trackers
-    private void startCameraAndTrackers(int camera) throws SampleApplicationException
+    private void startCameraAndTrackers(int camera) throws VuforiaException
     {
         String error;
         if(mCameraRunning)
         {
         	error = "Camera already running, unable to open again";
         	Log.e(LOGTAG, error);
-            throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+            throw new VuforiaException(
+                VuforiaException.CAMERA_INITIALIZATION_FAILURE, error);
         }
         
         mCamera = camera;
@@ -154,8 +152,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         {
             error = "Unable to open camera device: " + camera;
             Log.e(LOGTAG, error);
-            throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+            throw new VuforiaException(
+                VuforiaException.CAMERA_INITIALIZATION_FAILURE, error);
         }
                
         if (!CameraDevice.getInstance().selectVideoMode(
@@ -163,16 +161,16 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         {
             error = "Unable to set video mode";
             Log.e(LOGTAG, error);
-            throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+            throw new VuforiaException(
+                VuforiaException.CAMERA_INITIALIZATION_FAILURE, error);
         }
         
         if (!CameraDevice.getInstance().start())
         {
             error = "Unable to start camera device: " + camera;
             Log.e(LOGTAG, error);
-            throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+            throw new VuforiaException(
+                VuforiaException.CAMERA_INITIALIZATION_FAILURE, error);
         }
         
         mSessionControl.doStartTrackers();
@@ -183,7 +181,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     public void startAR(int camera)
     {
         mCamera = camera;
-        SampleApplicationException vuforiaException = null;
+        VuforiaException vuforiaException = null;
 
         try {
             mStartVuforiaTask = new StartVuforiaTask();
@@ -192,8 +190,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         catch (Exception e)
         {
             String logMessage = "Starting Vuforia failed";
-            vuforiaException = new SampleApplicationException(
-                    SampleApplicationException.CAMERA_INITIALIZATION_FAILURE,
+            vuforiaException = new VuforiaException(
+                    VuforiaException.CAMERA_INITIALIZATION_FAILURE,
                     logMessage);
             Log.e(LOGTAG, logMessage);
         }
@@ -208,7 +206,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
     
     // Stops any ongoing initialization, stops Vuforia
-    public void stopAR() throws SampleApplicationException
+    public void stopAR() throws VuforiaException
     {
         // Cancel potentially running tasks
         if (mInitVuforiaTask != null
@@ -250,13 +248,13 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             Vuforia.deinit();
             
             if (!unloadTrackersResult)
-                throw new SampleApplicationException(
-                    SampleApplicationException.UNLOADING_TRACKERS_FAILURE,
+                throw new VuforiaException(
+                    VuforiaException.UNLOADING_TRACKERS_FAILURE,
                     "Failed to unload trackers\' data");
             
             if (!deinitTrackersResult)
-                throw new SampleApplicationException(
-                    SampleApplicationException.TRACKERS_DEINITIALIZATION_FAILURE,
+                throw new VuforiaException(
+                    VuforiaException.TRACKERS_DEINITIALIZATION_FAILURE,
                     "Failed to deinitialize trackers");
             
         }
@@ -266,7 +264,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     // Resumes Vuforia, restarts the trackers and the camera
     private void resumeAR()
     {
-        SampleApplicationException vuforiaException = null;
+        VuforiaException vuforiaException = null;
 
         try {
             mResumeVuforiaTask = new ResumeVuforiaTask();
@@ -275,8 +273,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         catch (Exception e)
         {
             String logMessage = "Resuming Vuforia failed";
-            vuforiaException = new SampleApplicationException(
-                    SampleApplicationException.INITIALIZATION_FAILURE,
+            vuforiaException = new VuforiaException(
+                    VuforiaException.INITIALIZATION_FAILURE,
                     logMessage);
             Log.e(LOGTAG, logMessage);
         }
@@ -291,7 +289,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
 
     // Pauses Vuforia and stops the camera
-    public void pauseAR() throws SampleApplicationException
+    public void pauseAR() throws VuforiaException
     {
         if (mStarted)
         {
@@ -402,7 +400,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             Log.d(LOGTAG, "InitVuforiaTask.onPostExecute: execution "
                     + (result ? "successful" : "failed"));
             
-            SampleApplicationException vuforiaException = null;
+            VuforiaException vuforiaException = null;
             
             if (result)
             {
@@ -413,8 +411,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 catch (Exception e)
                 {
                     String logMessage = "Failed to initialize tracker.";
-                    vuforiaException = new SampleApplicationException(
-                            SampleApplicationException.TRACKERS_INITIALIZATION_FAILURE,
+                    vuforiaException = new VuforiaException(
+                            VuforiaException.TRACKERS_INITIALIZATION_FAILURE,
                             logMessage);
                     Log.e(LOGTAG, logMessage);
                 }
@@ -464,7 +462,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         protected void onPostExecute(Boolean result)
         {
 
-            SampleApplicationException vuforiaException = null;
+            VuforiaException vuforiaException = null;
             Log.d(LOGTAG, "InitTrackerTask.onPostExecute: execution "
                 + (result ? "successful" : "failed"));
 
@@ -479,8 +477,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                     String logMessage = "Failed to load tracker data.";
                     Log.e(LOGTAG, logMessage);
 
-                    vuforiaException = new SampleApplicationException(
-                            SampleApplicationException.LOADING_TRACKERS_FAILURE,
+                    vuforiaException = new VuforiaException(
+                            VuforiaException.LOADING_TRACKERS_FAILURE,
                             logMessage);
                 }
             }
@@ -490,8 +488,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 Log.e(LOGTAG, logMessage);
 
                 // Error loading dataset
-                vuforiaException = new SampleApplicationException(
-                        SampleApplicationException.TRACKERS_INITIALIZATION_FAILURE,
+                vuforiaException = new VuforiaException(
+                        VuforiaException.TRACKERS_INITIALIZATION_FAILURE,
                         logMessage);
             }
 
@@ -520,7 +518,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         protected void onPostExecute(Boolean result)
         {
             
-            SampleApplicationException vuforiaException = null;
+            VuforiaException vuforiaException = null;
             
             Log.d(LOGTAG, "LoadTrackerTask.onPostExecute: execution "
                 + (result ? "successful" : "failed"));
@@ -530,8 +528,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 String logMessage = "Failed to load tracker data.";
                 // Error loading dataset
                 Log.e(LOGTAG, logMessage);
-                vuforiaException = new SampleApplicationException(
-                    SampleApplicationException.LOADING_TRACKERS_FAILURE,
+                vuforiaException = new VuforiaException(
+                    VuforiaException.LOADING_TRACKERS_FAILURE,
                     logMessage);
             } else
             {
@@ -542,7 +540,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 // garbage collector will actually be run.
                 System.gc();
                 
-                Vuforia.registerCallback(SampleApplicationSession.this);
+                Vuforia.registerCallback(VuforiaSession.this);
 
                 mStarted = true;
             }
@@ -556,7 +554,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     // An async task to start the camera and trackers
     private class StartVuforiaTask extends AsyncTask<Void, Void, Boolean>
     {
-        SampleApplicationException vuforiaException = null;
+        VuforiaException vuforiaException = null;
         protected Boolean doInBackground(Void... params)
         {
             // Prevent the concurrent lifecycle operations:
@@ -565,7 +563,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 try {
                     startCameraAndTrackers(mCamera);
                 }
-                catch (SampleApplicationException e)
+                catch (VuforiaException e)
                 {
                     Log.e(LOGTAG, "StartVuforiaTask.doInBackground: Could not start AR with exception: " + e);
                     vuforiaException = e;

@@ -1,4 +1,4 @@
-package mam.mam_project1.ar_recognition;
+package mam.mam_project1.ar_recognition.vuforia_dependencies;
 
 import android.app.Activity;
 import android.content.res.Configuration;
@@ -27,16 +27,13 @@ import com.vuforia.VideoBackgroundConfig;
 import com.vuforia.VideoMode;
 import com.vuforia.ViewList;
 
-import mam.mam_project1.ar_recognition.recognition_utils.SampleUtils;
-import mam.mam_project1.ar_recognition.recognition_utils.VideoBackgroundShader;
 
+public class VuforiaRenderer {
 
-public class SampleAppRenderer {
-
-    private static final String LOGTAG = "SampleAppRenderer";
+    private static final String LOGTAG = "VuforiaRenderer";
 
     private RenderingPrimitives mRenderingPrimitives = null;
-    private SampleAppRendererControl mRenderingInterface = null;
+    private VuforiaRendererControl mRenderingInterface = null;
     private Activity mActivity = null;
 
     private Renderer mRenderer = null;
@@ -60,8 +57,8 @@ public class SampleAppRenderer {
     // Stores orientation
     private boolean mIsPortrait = false;
 
-    public SampleAppRenderer(SampleAppRendererControl renderingInterface, Activity activity, int deviceMode,
-                             boolean stereo, float nearPlane, float farPlane)
+    public VuforiaRenderer(VuforiaRendererControl renderingInterface, Activity activity, int deviceMode,
+                           boolean stereo, float nearPlane, float farPlane)
     {
         mActivity = activity;
 
@@ -105,8 +102,8 @@ public class SampleAppRenderer {
 
     void initRendering()
     {
-        vbShaderProgramID = SampleUtils.createProgramFromShaderSrc(VideoBackgroundShader.VB_VERTEX_SHADER,
-                VideoBackgroundShader.VB_FRAGMENT_SHADER);
+        vbShaderProgramID = VuforiaUtils.createProgramFromShaderSrc(VuforiaVideoBackgroundShader.VB_VERTEX_SHADER,
+                VuforiaVideoBackgroundShader.VB_FRAGMENT_SHADER);
 
         // Rendering configuration for video background
         if (vbShaderProgramID > 0)
@@ -195,7 +192,7 @@ public class SampleAppRenderer {
 
             currentView = viewID;
 
-            // Call renderFrame from the app renderer class which implements SampleAppRendererControl
+            // Call renderFrame from the app renderer class which implements VuforiaRendererControl
             // This will be called for MONO, LEFT and RIGHT views, POSTPROCESS will not render the
             // frame
             if(currentView != VIEW.VIEW_POSTPROCESS)
@@ -264,7 +261,7 @@ public class SampleAppRenderer {
         GLES20.glDisableVertexAttribArray(vbVertexHandle);
         GLES20.glDisableVertexAttribArray(vbTexCoordHandle);
 
-        SampleUtils.checkGLError("Rendering of the video background failed");
+        VuforiaUtils.checkGLError("Rendering of the video background failed");
     }
 
 

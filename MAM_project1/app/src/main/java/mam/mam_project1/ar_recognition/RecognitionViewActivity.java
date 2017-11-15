@@ -19,18 +19,21 @@ import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
 
-import mam.mam_project1.ar_recognition.recognition_utils.SampleApplicationGLView;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaControl;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaException;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaGLView;
+import mam.mam_project1.ar_recognition.vuforia_dependencies.VuforiaSession;
 
 
-public class RecognitionViewActivity extends Activity implements SampleApplicationControl {
+public class RecognitionViewActivity extends Activity implements VuforiaControl {
     private static final String LOGTAG = "ImageTargets";
 
-    SampleApplicationSession vuforiaAppSession;
+    VuforiaSession vuforiaAppSession;
 
     private DataSet mCurrentDataset;
 
     // Our OpenGL view:
-    private SampleApplicationGLView mGlView;
+    private VuforiaGLView mGlView;
 
     // Our renderer:
     private RecognitionViewRenderer mRenderer;
@@ -45,7 +48,7 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
         Log.d(LOGTAG, "onCreate");
         super.onCreate(savedInstanceState);
 
-        vuforiaAppSession = new SampleApplicationSession(this);
+        vuforiaAppSession = new VuforiaSession(this);
 
         vuforiaAppSession
                 .initAR(this, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -92,7 +95,7 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
 
         try {
             vuforiaAppSession.pauseAR();
-        } catch (SampleApplicationException e) {
+        } catch (VuforiaException e) {
             Log.e(LOGTAG, e.getString());
         }
     }
@@ -106,7 +109,7 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
 
         try {
             vuforiaAppSession.stopAR();
-        } catch (SampleApplicationException e) {
+        } catch (VuforiaException e) {
             Log.e(LOGTAG, e.getString());
         }
 
@@ -122,7 +125,7 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new SampleApplicationGLView(this);
+        mGlView = new VuforiaGLView(this);
         mGlView.init(translucent, depthSize, stencilSize);
 
         mRenderer = new RecognitionViewRenderer(this, vuforiaAppSession);
@@ -205,7 +208,7 @@ public class RecognitionViewActivity extends Activity implements SampleApplicati
     }
 
     @Override
-    public void onInitARDone(SampleApplicationException exception) {
+    public void onInitARDone(VuforiaException exception) {
 
         if (exception == null) {
             initApplicationAR();

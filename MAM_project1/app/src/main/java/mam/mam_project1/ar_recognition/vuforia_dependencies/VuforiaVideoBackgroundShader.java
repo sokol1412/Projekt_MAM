@@ -1,6 +1,6 @@
-package mam.mam_project1.ar_recognition.recognition_utils;
+package mam.mam_project1.ar_recognition.vuforia_dependencies;
 
-public class VideoBackgroundShader
+public class VuforiaVideoBackgroundShader
 {
     
     public static final String VB_VERTEX_SHADER =          

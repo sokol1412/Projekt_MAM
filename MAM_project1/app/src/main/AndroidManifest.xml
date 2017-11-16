@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".vr_view.VRViewActivity"
+        <activity android:name=".vr_view.CardboardViewActivity"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="VRActivity"/>

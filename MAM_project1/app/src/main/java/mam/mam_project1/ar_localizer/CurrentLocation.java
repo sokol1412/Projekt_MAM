@@ -32,8 +32,8 @@ public class CurrentLocation implements GoogleApiClient.ConnectionCallbacks, Goo
 
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                .setInterval(10 * 1000)
+                .setFastestInterval(1 * 1000);
     }
 
     public void start(){
@@ -60,7 +60,7 @@ public class CurrentLocation implements GoogleApiClient.ConnectionCallbacks, Goo
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("MyApp", "Location services connection failed with code " + connectionResult.getErrorCode());
+        Log.e("CurrentLocation", "Location cannot be established, error: " + connectionResult.getErrorCode());
     }
 
     @Override

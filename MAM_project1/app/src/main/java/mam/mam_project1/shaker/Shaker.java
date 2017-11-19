@@ -7,13 +7,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
 import java.util.Random;
 
 public class Shaker extends AppCompatActivity implements SensorEventListener {
 
-    //const values
     private static final float SHAKE_THRESHOLD = 10.0f;
     private static final int TIME_BETWEEN_SHAKES = 1000;
 
@@ -43,7 +41,6 @@ public class Shaker extends AppCompatActivity implements SensorEventListener {
                 float y = event.values[1];
                 float z = event.values[2];
 
-                // Calculate acceleration
                 if ((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2)) - SensorManager.GRAVITY_EARTH) > SHAKE_THRESHOLD) {
                     lastShakeDetectionTime = currentTime;
                     Random rnd = new Random();

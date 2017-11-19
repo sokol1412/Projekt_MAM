@@ -46,7 +46,7 @@ import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 public class StandardViewActivity extends VideoDisplayActivity
         implements View.OnTouchListener, SensorsChangedListener {
 
-    private int mode = 0;
+    private int status = 0;
     private Shaker shaker;
     private static Camera camera = null;
 
@@ -62,13 +62,13 @@ public class StandardViewActivity extends VideoDisplayActivity
     private CurrentLocation currentLocation;
 
     // size of the minimum square which user must select in order to track object
-    private final static int MINIMUM_MOTION = 20;
+    private final static int MINIMUM_SQUARE_SIZE = 20;
 
     //constant for defining the time duration between the click that can be considered as double-tap
     private final static int MAX_DURATION = 200;
 
-    private Point2D_I32 click0 = new Point2D_I32();
-    private Point2D_I32 click1 = new Point2D_I32();
+    private Point2D_I32 firstClick = new Point2D_I32();
+    private Point2D_I32 secondClick = new Point2D_I32();
 
     //clickTime needed for detecting doubletap event
     private long clickTime;
@@ -167,13 +167,14 @@ public class StandardViewActivity extends VideoDisplayActivity
         phiAngle = Math.atan(tanPhi);
         phiAngle = Math.toDegrees(phiAngle);
 
-        if (dX > 0 && dY > 0) { // I quater
+        // specify quaters (from 1 to 4)
+        if (dX > 0 && dY > 0) {
             return phiAngle;
-        } else if (dX < 0 && dY > 0) { // II
+        } else if (dX < 0 && dY > 0) {
             return 180 - phiAngle;
-        } else if (dX < 0 && dY < 0) { // III
+        } else if (dX < 0 && dY < 0) {
             return 180 + phiAngle;
-        } else if (dX > 0 && dY < 0) { // IV
+        } else if (dX > 0 && dY < 0) {
             return 360 - phiAngle;
         }
 
@@ -277,25 +278,25 @@ public class StandardViewActivity extends VideoDisplayActivity
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (mode == 0) {
+        if (status == 0) {
             if (MotionEvent.ACTION_DOWN == motionEvent.getActionMasked()) {
-                click0.set((int) motionEvent.getX(), (int) motionEvent.getY());
-                click1.set((int) motionEvent.getX(), (int) motionEvent.getY());
-                mode = 1;
+                firstClick.set((int) motionEvent.getX(), (int) motionEvent.getY());
+                secondClick.set((int) motionEvent.getX(), (int) motionEvent.getY());
+                status = 1;
             }
-        } else if (mode == 1) {
+        } else if (status == 1) {
             if (MotionEvent.ACTION_MOVE == motionEvent.getActionMasked()) {
-                click1.set((int) motionEvent.getX(), (int) motionEvent.getY());
+                secondClick.set((int) motionEvent.getX(), (int) motionEvent.getY());
             } else if (MotionEvent.ACTION_UP == motionEvent.getActionMasked()) {
-                click1.set((int) motionEvent.getX(), (int) motionEvent.getY());
-                mode = 2;
+                secondClick.set((int) motionEvent.getX(), (int) motionEvent.getY());
+                status = 2;
             }
-        } else if (mode == 3) {
+        } else if (status == 3) {
             if (MotionEvent.ACTION_UP == motionEvent.getActionMasked()) {
                 clickTime = System.currentTimeMillis();
             } else if (MotionEvent.ACTION_DOWN == motionEvent.getActionMasked()) {
                 if (System.currentTimeMillis() - clickTime <= MAX_DURATION) {
-                    mode = 0;
+                    status = 0;
                 }
             }
         }
@@ -324,7 +325,7 @@ public class StandardViewActivity extends VideoDisplayActivity
                 input = inputType.createImage(1, 1);
             }
 
-            mode = 0;
+            status = 0;
             this.tracker = tracker;
 
             objectMarkingPaint.setColor(Color.argb(0xFF / 2, 0xFF, 0, 0));
@@ -349,30 +350,30 @@ public class StandardViewActivity extends VideoDisplayActivity
                 input = (T) color;
             }
 
-            if (mode == 2) {
-                imageToOutput(click0.x, click0.y, location.a);
-                imageToOutput(click1.x, click1.y, location.c);
+            if (status == 2) {
+                imageToOutput(firstClick.x, firstClick.y, location.a);
+                imageToOutput(secondClick.x, secondClick.y, location.c);
 
                 makeInBounds(location.a);
                 makeInBounds(location.c);
 
-                if (movedSignificantly(location.a, location.c)) {
+                if (checkMovement(location.a, location.c)) {
                     location.b.set(location.c.x, location.a.y);
                     location.d.set(location.a.x, location.c.y);
 
                     tracker.initialize(input, location);
                     visible = true;
-                    mode = 3;
+                    status = 3;
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(StandardViewActivity.this, "Drag a larger region", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(StandardViewActivity.this, "Select larger area", Toast.LENGTH_SHORT).show();
                         }
                     });
-                    mode = 0;
+                    status = 0;
                 }
-            } else if (mode == 3) {
+            } else if (status == 3) {
                 visible = tracker.process(input, location);
             }
         }
@@ -381,15 +382,15 @@ public class StandardViewActivity extends VideoDisplayActivity
             ConvertBitmap.multiToBitmap(color, output, storage);
             Canvas canvas = new Canvas(output);
 
-            if (mode == 1) {
+            if (status == 1) {
                 Point2D_F64 a = new Point2D_F64();
                 Point2D_F64 b = new Point2D_F64();
 
-                imageToOutput(click0.x, click0.y, a);
-                imageToOutput(click1.x, click1.y, b);
+                imageToOutput(firstClick.x, firstClick.y, a);
+                imageToOutput(secondClick.x, secondClick.y, b);
 
                 canvas.drawRect((int) a.x, (int) a.y, (int) b.x, (int) b.y, objectMarkingPaint);
-            } else if (mode >= 2) {
+            } else if (status >= 2) {
                 if (visible) {
                     Quadrilateral_F64 q = location;
                     if (shaker.shakeEventOccurred) {
@@ -412,10 +413,10 @@ public class StandardViewActivity extends VideoDisplayActivity
 
         }
 
-        private boolean movedSignificantly(Point2D_F64 a, Point2D_F64 b) {
-            if (Math.abs(a.x - b.x) < MINIMUM_MOTION)
+        private boolean checkMovement(Point2D_F64 a, Point2D_F64 b) {
+            if (Math.abs(a.x - b.x) < MINIMUM_SQUARE_SIZE)
                 return false;
-            if (Math.abs(a.y - b.y) < MINIMUM_MOTION)
+            if (Math.abs(a.y - b.y) < MINIMUM_SQUARE_SIZE)
                 return false;
 
             return true;

@@ -66,8 +66,8 @@ public class CardboardViewActivity extends GvrActivity implements GvrView.Stereo
   private int texture;
   private GvrView cardboardView;
   private SurfaceTexture surface;
-  private float[] mView;
-  private float[] mCamera;
+  private float[] view;
+  private float[] cam;
 
   public void startCamera(int texture) throws IOException {
     surface = new SurfaceTexture(texture);
@@ -122,8 +122,8 @@ public class CardboardViewActivity extends GvrActivity implements GvrView.Stereo
       cardboardView.setRenderer(this);
       setGvrView(cardboardView);
 
-    mCamera = new float[16];
-    mView = new float[16];
+    cam = new float[16];
+    view = new float[16];
   }
 
   @Override
@@ -209,7 +209,7 @@ public class CardboardViewActivity extends GvrActivity implements GvrView.Stereo
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textureCoordHandle);
 
-        Matrix.multiplyMM(mView, 0, eye.getEyeView(), 0, mCamera, 0);
+        Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, cam, 0);
     }
 
     @Override

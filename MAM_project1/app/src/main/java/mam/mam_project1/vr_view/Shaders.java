@@ -16,10 +16,10 @@ public class Shaders {
     private static final String fragmentShaderCode =
             "#extension GL_OES_EGL_image_external : require\n" +
                     "precision mediump float;" +
-                    "varying vec2 textureCoordinate;                            \n" +
-                    "uniform samplerExternalOES s_texture;               \n" +
+                    "varying vec2 textureCoordinate; \n" +
+                    "uniform samplerExternalOES s_texture; \n" +
                     "void main(void) {" +
-                    "  gl_FragColor = texture2D( s_texture, textureCoordinate );\n" +
+                    "  gl_FragColor = texture2D( s_texture, textureCoordinate ); \n" +
                     "}";
 
 
@@ -28,16 +28,16 @@ public class Shaders {
         GLES20.glShaderSource(shader, code);
         GLES20.glCompileShader(shader);
 
-        final int[] compileStatus = new int[1];
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+        final int[] status = new int[1];
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0);
 
-        if (compileStatus[0] == 0) {
+        if (status[0] == 0) {
             GLES20.glDeleteShader(shader);
             shader = 0;
         }
 
         if (shader == 0) {
-            throw new RuntimeException("Error creating shader.");
+            throw new RuntimeException("Error occured while loading shader.");
         }
         return shader;
     }
